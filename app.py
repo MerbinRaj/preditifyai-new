@@ -16,6 +16,7 @@ from docx import Document
 from docx.shared import Inches
 import base64
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sqlalchemy.exc import IntegrityError
 
 
 # ================= APP SETUP =================
@@ -23,7 +24,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 
 # ================= DATABASE =================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db?check_same_thread=False'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 sns.set_style("whitegrid")
@@ -46,7 +47,7 @@ DOWNLOAD_FOLDER = os.path.join(BASE_DIR, "static", "downloads")
 
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# ================= LOGIN / LOGOUT =================
+# ================= LOGIN =================
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
@@ -69,14 +70,40 @@ def login():
                 session['email'] = user.email
                 return redirect(url_for('home'))
         else:
+            error = "❌ User not found. Please register first."
+
+    return render_template('login.html', error=error)
+
+
+# ================= REGISTER =================
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not username or not email or not password:
+            error = "❌ All fields required!"
+            return render_template('register.html', error=error)
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            error = "❌ Email already exists!"
+            return render_template('register.html', error=error)
+
+        try:
             new_user = User(username=username, email=email, password=password)
             db.session.add(new_user)
             db.session.commit()
-            session['user'] = username
-            session['email'] = email
-            return redirect(url_for('home'))
+            return redirect(url_for('login'))
 
-    return render_template('login.html', error=error)
+        except IntegrityError:
+            db.session.rollback()
+            error = "❌ Something went wrong!"
+
+    return render_template('register.html', error=error)
 
 @app.route('/logout')
 def logout():
@@ -85,9 +112,12 @@ def logout():
 
 @app.route('/home')
 def home():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    return render_template('home.html', username=session['user'])
+    try:
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return render_template('home.html', username=session['user'])
+    except Exception as e:
+        return f"❌ Home Error: {str(e)}"
 
 @app.route('/download/<filename>')
 def download(filename):
