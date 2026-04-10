@@ -73,7 +73,27 @@ def login():
             error = "❌ User not found. Please register first."
 
     return render_template('login.html', error=error)
+# ================= HOME =================
+@app.route('/home')
+def home():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('home.html', username=session['user'])
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+# ================= DOWNLOAD ROUTE (ADD HERE) =================
+# ✅ ADD THIS HERE (GOOD PLACE)
+@app.route('/download/<filename>')
+def download(filename):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 # ================= REGISTER =================
 @app.route('/register', methods=['GET', 'POST'])
@@ -481,6 +501,5 @@ def download_ai_report():
     return send_from_directory(DOWNLOAD_FOLDER, os.path.basename(file_path), as_attachment=True)
 # ================= RUN =================
 if __name__ == "__main__":
-    if __name__ == "__main__":
-         port = int(os.environ.get("PORT", 5000))
-         app.run(host="0.0.0.0", port=port)
+     port = int(os.environ.get("PORT", 5000))
+     app.run(host="0.0.0.0", port=port)
