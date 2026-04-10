@@ -17,7 +17,7 @@ from docx.shared import Inches
 import base64
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sqlalchemy.exc import IntegrityError
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # ================= APP SETUP =================
 app = Flask(__name__)
@@ -34,7 +34,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -63,8 +63,8 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if user:
-            if user.password != password:
-                error = "❌ Incorrect password!"
+            if not check_password_hash(user.password, password):
+                 error = "❌ Incorrect password!"
             else:
                 session['user'] = user.username
                 session['email'] = user.email
@@ -88,15 +88,26 @@ def register():
             error = "❌ All fields required!"
             return render_template('register.html', error=error)
 
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter(
+            (User.email == email) | (User.username == username)
+        ).first()
         if existing_user:
             error = "❌ Email already exists!"
             return render_template('register.html', error=error)
 
         try:
-            new_user = User(username=username, email=email, password=password)
+            # 🔥 PASSWORD HASHING GOES HERE
+            hashed_password = generate_password_hash(password)
+
+            new_user = User(
+                username=username,
+                email=email,
+                password=hashed_password
+            )
+
             db.session.add(new_user)
             db.session.commit()
+
             return redirect(url_for('login'))
 
         except IntegrityError:
@@ -104,26 +115,6 @@ def register():
             error = "❌ Something went wrong!"
 
     return render_template('register.html', error=error)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/home')
-def home():
-    try:
-        if 'user' not in session:
-            return redirect(url_for('login'))
-        return render_template('home.html', username=session['user'])
-    except Exception as e:
-        return f"❌ Home Error: {str(e)}"
-
-@app.route('/download/<filename>')
-def download(filename):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 # ================= AI PREDICTION =================
 @app.route('/upload', methods=['POST'])
@@ -490,4 +481,6 @@ def download_ai_report():
     return send_from_directory(DOWNLOAD_FOLDER, os.path.basename(file_path), as_attachment=True)
 # ================= RUN =================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    if __name__ == "__main__":
+         port = int(os.environ.get("PORT", 5000))
+         app.run(host="0.0.0.0", port=port)
