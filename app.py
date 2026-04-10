@@ -18,7 +18,8 @@ import base64
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import logging
+logging.basicConfig(level=logging.INFO)
 # ================= APP SETUP =================
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
@@ -152,7 +153,8 @@ def upload():
         # Preprocess
         if 'customerID' in df.columns:
             df.drop(['customerID'], axis=1, inplace=True)
-        df.fillna(df.mean(numeric_only=True), inplace=True)
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
 
         if 'Churn' not in df.columns:
             return "❌ 'Churn' column not found"
@@ -192,6 +194,7 @@ def upload():
         unique_csv = f"{session['user']}_prediction_{uuid.uuid4().hex}.csv"
         csv_path = os.path.join(DOWNLOAD_FOLDER, unique_csv)
         df.to_csv(csv_path, index=False)
+
         session['prediction_file'] = csv_path
 
         # ================= GRAPHS =================
