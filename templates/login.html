@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predictify AI - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+    /* ================= BACKGROUND ================= */
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: white;
+        margin-top: 60px; /* prevent navbar overlap */
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+        background: radial-gradient(circle at 20% 30%, #1a0033, #000000);
+        overflow: hidden;
+    }
+
+    .background .icon {
+        position: absolute;
+        bottom: -50px;
+        font-size: 2rem;
+        color: white;
+        opacity: 0;
+        animation: rise linear infinite, blink ease-in-out infinite;
+    }
+
+    /* Randomize positions and speed */
+    .background .icon:nth-child(1) { left: 10%; animation-duration: 12s, 2s; font-size: 2rem; animation-delay: 0s, 0s; }
+    .background .icon:nth-child(2) { left: 25%; animation-duration: 15s, 1.5s; font-size: 1.8rem; animation-delay: 2s, 0.5s; }
+    .background .icon:nth-child(3) { left: 40%; animation-duration: 10s, 2.5s; font-size: 2.2rem; animation-delay: 1s, 1s; }
+    .background .icon:nth-child(4) { left: 55%; animation-duration: 18s, 1.8s; font-size: 2rem; animation-delay: 3s, 0.3s; }
+    .background .icon:nth-child(5) { left: 70%; animation-duration: 14s, 2.2s; font-size: 1.9rem; animation-delay: 1.5s, 0.7s; }
+    .background .icon:nth-child(6) { left: 85%; animation-duration: 16s, 1.6s; font-size: 2.1rem; animation-delay: 2.5s, 1s; }
+    .background .icon:nth-child(7) { left: 30%; animation-duration: 20s, 2.5s; font-size: 2rem; animation-delay: 0.5s, 0.2s; }
+    .background .icon:nth-child(8) { left: 60%; animation-duration: 13s, 1.7s; font-size: 2.3rem; animation-delay: 3s, 0.6s; }
+
+    @keyframes rise {
+        0% { bottom: -50px; transform: translateX(0) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.6; }
+        50% { transform: translateX(20px) rotate(15deg); }
+        70% { transform: translateX(-20px) rotate(-15deg); }
+        100% { bottom: 110%; transform: translateX(0) rotate(0deg); opacity: 0; }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
+    }
+
+    /* ================= CONTAINER ================= */
+    .path {
+        position: relative;
+        margin: 120px auto;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(15px);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        z-index: 10;
+        width: 350px;
+        box-shadow: 0 0 25px rgba(138, 76, 196, 0.6);
+    }
+
+    h1, h2 {
+        color: #fff;
+        text-shadow: 0 0 10px #8b5cf6, 0 0 20px #7c3aed;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+        padding: 10px;
+        width: 100%;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+    }
+
+    input::placeholder {
+        color: rgba(255,255,255,0.7);
+    }
+
+    button {
+        padding: 10px;
+        width: 100%;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #7c3aed, #00f2fe);
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 1rem;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+    }
+
+    a {
+        color: white;
+        text-decoration: underline;
+    }
+
+    .error {
+        color: #ff4d4d;
+        margin-bottom: 10px;
+    }
+    </style>
+</head>
+<body>
+
+<h1>Predictify AI</h1>
+
+<!-- BACKGROUND ICONS -->
+<div class="background">
+    <div class="icon">💼</div>
+    <div class="icon">👤</div>
+    <div class="icon">🤖</div>
+    <div class="icon">📊</div>
+    <div class="icon">💡</div>
+    <div class="icon">🧠</div>
+    <div class="icon">⚡</div>
+    <div class="icon">🔮</div>
+</div>
+
+<!-- LOGIN / SIGNUP FORM -->
+<div class="path">
+    <h2>Login / Signup</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <input type="text" name="username" placeholder="Enter Username" required><br>
+        <input type="email" name="email" placeholder="Enter Email" required><br>
+        <input type="password" name="password" placeholder="Enter Password" required><br><br>
+        <button type="submit">Login / Signup</button>
+    </form>
+
+
+    <p style="color:gray;">New user? Just enter details → auto signup</p>
+</div>
+
+</body>
+</html>

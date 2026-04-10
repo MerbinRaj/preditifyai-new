@@ -1,0 +1,8 @@
+flask
+gunicorn
+pandas
+matplotlib
+seaborn
+scikit-learn
+python-docx
+flask-sqlalchemy

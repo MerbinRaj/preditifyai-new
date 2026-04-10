@@ -1,0 +1,151 @@
+
+/* ================= BACKGROUND FIX ================= */
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle at 20% 30%, #542284, #000000);
+}
+
+/* ================= BODY ================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: rgb(228, 222, 222);
+    margin-top: 60px; /* Prevent navbar overlap */
+}
+
+/* ================= CONTAINER ================= */
+.container {
+    position: relative;
+    margin: 120px auto;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    z-index: 10;
+    width: 350px;
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+}
+
+/* ================= HEADINGS ================= */
+h1, h2 {
+    color: #fff;
+    text-shadow: 0 0 10px #8b5cf6, 0 0 20px #7c3aed;
+    margin-top: 10px;
+}
+
+/* ================= BUTTONS ================= */
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.buttons button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #7c3aed, #00f2fe);
+    color: rgb(207, 195, 195);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.buttons button:hover {
+    transform: scale(1.05);
+}
+
+/* ================= INPUTS ================= */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"] {
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: rgb(192, 183, 183);
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ================= FILE INPUT ================= */
+input[type="file"] {
+    padding: 10px;
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+    background: #7c3aed;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    padding: 12px 20px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.navbar a {
+    color: rgb(243, 235, 235);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* ================= TABLE / RESULT PAGE ================= */
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.result-table th,
+.result-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(32, 176, 192, 0.2);
+}
+
+.result-table th {
+    background: rgba(124, 58, 237, 0.6);
+    color: rgb(10, 199, 23);
+}
+
+/* Hover effect for table rows */
+.result-table tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+h1 {
+    text-align: center; /* Center the title horizontally */
+    color: #fff;
+    text-shadow: 0 0 10px #8b5cf6, 0 0 20px #7c3aed;
+    margin-top: 100px;   /* Optional: some space from top */
+}
