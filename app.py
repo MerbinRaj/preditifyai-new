@@ -365,8 +365,8 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
         if user:
             try:
-                sender_email = "your_email@gmail.com"
-                sender_password = "your_app_password"
+                sender_email = os.environ.get("EMAIL")
+                sender_password = os.environ.get("EMAIL_PASSWORD")
                 receiver_email = email
 
                 msg = MIMEMultipart("alternative")
@@ -409,7 +409,7 @@ def reset_password(user_id):
         if not new_password:
             message = "❌ Password cannot be empty."
         else:
-            user.password = new_password
+            user.password = generate_password_hash(new_password)
             db.session.commit()
             message = "✅ Password updated successfully!"
             return redirect(url_for('login'))
@@ -475,8 +475,10 @@ def download_ai_report():
 
     # Add prediction table
     pred_file = session.get('prediction_file')
-    if pred_file and os.path.exists(pred_file):
-        df_table = pd.read_csv(pred_file).head(100)
+    if pred_file:
+        full_path = os.path.join(DOWNLOAD_FOLDER, pred_file)
+    if os.path.exists(full_path):
+        df_table = pd.read_csv(full_path).head(100)
         doc.add_heading('🔹 Prediction Table (Top 100 Rows)', level=1)
         table = doc.add_table(rows=1, cols=len(df_table.columns))
         table.style = 'Medium Shading 1 Accent 1'
