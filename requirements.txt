@@ -1,11 +1,10 @@
-flask
-flask_sqlalchemy
+Flask
+Flask-SQLAlchemy
 pandas
+numpy
 matplotlib
 seaborn
 scikit-learn
 python-docx
 werkzeug
 gunicorn
-numpy
-scipy
