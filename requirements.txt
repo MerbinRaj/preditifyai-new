@@ -7,3 +7,5 @@ scikit-learn
 python-docx
 werkzeug
 gunicorn
+numpy
+scipy
