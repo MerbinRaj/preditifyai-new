@@ -60,7 +60,9 @@ def login():
             error = "❌ All fields required!"
             return render_template('login.html', error=error)
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(
+    (User.username == username) | (User.email == email)
+).first()
 
         if user:
             if not check_password_hash(user.password, password):
@@ -149,6 +151,10 @@ def upload():
 
         df = pd.read_csv(file)
 
+        # 🔥 LIMIT DATA SIZE (IMPORTANT FOR RENDER)
+        if len(df) > 3000:
+            return "❌ Dataset too large (max 3000 rows allowed)"
+
         # ---------------- PREPROCESS ----------------
         if 'customerID' in df.columns:
             df.drop(['customerID'], axis=1, inplace=True)
@@ -174,7 +180,7 @@ def upload():
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        model = LogisticRegression(max_iter=300)
+        model = LogisticRegression(max_iter=100)
         model.fit(X_scaled, y)
 
         predictions = model.predict(X_scaled)
@@ -195,8 +201,7 @@ def upload():
         # ---------------- SAVE CSV ----------------
         unique_csv = f"{session['user']}_prediction_{uuid.uuid4().hex}.csv"
         csv_path = os.path.join(DOWNLOAD_FOLDER, unique_csv)
-        df.to_csv(csv_path, index=False)
-
+        df.head(2000).to_csv(csv_path, index=False)
         session['prediction_file'] = unique_csv
 
         # ---------------- GRAPHS FUNCTION ----------------
@@ -207,12 +212,12 @@ def upload():
             return path
 
         # Graph 1
-        plt.figure(figsize=(5,4))
+        plt.figure(figsize=(4,3))
         sns.countplot(x=df['Prediction'])
         session['graph1_file'] = save_graph(plt.gcf(), f"{session['user']}_graph1.png")
 
         # Graph 2
-        plt.figure(figsize=(6,5))
+        plt.figure(figsize=(4,3))
         sns.heatmap(df.corr(numeric_only=True), cmap='coolwarm', annot=False)
         session['graph2_file'] = save_graph(plt.gcf(), f"{session['user']}_graph2.png")
 
@@ -225,8 +230,7 @@ def upload():
         session['graph3_file'] = save_graph(plt.gcf(), f"{session['user']}_graph3.png")
 
         # ---------------- RESULT ----------------
-        table_html = df.head(100).to_html(index=False)
-
+        table_html = df.head(20).to_html(index=False)
         return render_template(
             'result.html',
             username=session['user'],
@@ -477,8 +481,8 @@ def download_ai_report():
     pred_file = session.get('prediction_file')
     if pred_file:
         full_path = os.path.join(DOWNLOAD_FOLDER, pred_file)
-    if os.path.exists(full_path):
-        df_table = pd.read_csv(full_path).head(100)
+        if os.path.exists(full_path):
+            df_table = pd.read_csv(full_path).head(100)
         doc.add_heading('🔹 Prediction Table (Top 100 Rows)', level=1)
         table = doc.add_table(rows=1, cols=len(df_table.columns))
         table.style = 'Medium Shading 1 Accent 1'
