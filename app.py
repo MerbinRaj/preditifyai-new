@@ -4,7 +4,7 @@ import pandas as pd
 import io, os, uuid
 import matplotlib
 matplotlib.use('Agg')
-
+import traceback
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
@@ -44,8 +44,7 @@ with app.app_context():
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 🔥 CHANGE HERE
-DOWNLOAD_FOLDER = os.path.join(BASE_DIR, "static", "downloads")
-
+DOWNLOAD_FOLDER = "/tmp/downloads"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 # ================= LOGIN =================
@@ -150,9 +149,10 @@ def upload():
 
         df = pd.read_csv(file)
 
-        # Preprocess
+        # ---------------- PREPROCESS ----------------
         if 'customerID' in df.columns:
             df.drop(['customerID'], axis=1, inplace=True)
+
         numeric_cols = df.select_dtypes(include=['number']).columns
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
 
@@ -161,6 +161,7 @@ def upload():
 
         if df['Churn'].dtype == 'object':
             df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
+
         df.dropna(subset=['Churn'], inplace=True)
         df['Churn'] = df['Churn'].astype(int)
 
@@ -177,11 +178,12 @@ def upload():
         model.fit(X_scaled, y)
 
         predictions = model.predict(X_scaled)
+
         df['Prediction'] = ["Churn" if p == 1 else "No Churn" for p in predictions]
 
-        # Metrics
+        # ---------------- METRICS ----------------
         churn = int((predictions == 1).sum())
-        total = int(len(predictions))
+        total = len(predictions)
         score = float(round(accuracy_score(y, predictions) * 100, 2))
         connected = total - churn
 
@@ -190,47 +192,40 @@ def upload():
         session['connected'] = connected
         session['score'] = score
 
-        # Save CSV
+        # ---------------- SAVE CSV ----------------
         unique_csv = f"{session['user']}_prediction_{uuid.uuid4().hex}.csv"
         csv_path = os.path.join(DOWNLOAD_FOLDER, unique_csv)
         df.to_csv(csv_path, index=False)
 
-        session['prediction_file'] = csv_path
+        session['prediction_file'] = unique_csv
 
-        # ================= GRAPHS =================
+        # ---------------- GRAPHS FUNCTION ----------------
         def save_graph(fig, filename):
             path = os.path.join(DOWNLOAD_FOLDER, filename)
             fig.savefig(path, bbox_inches='tight', dpi=150)
             plt.close(fig)
             return path
 
-        # Graph 1: Churn Count
+        # Graph 1
         plt.figure(figsize=(5,4))
         sns.countplot(x=df['Prediction'])
-        plt.title("Churn Prediction")
         session['graph1_file'] = save_graph(plt.gcf(), f"{session['user']}_graph1.png")
 
-        # Graph 2: Correlation Heatmap
+        # Graph 2
         plt.figure(figsize=(6,5))
         sns.heatmap(df.corr(numeric_only=True), cmap='coolwarm', annot=False)
         session['graph2_file'] = save_graph(plt.gcf(), f"{session['user']}_graph2.png")
 
-        # Graph 3: Confusion Matrix
+        # Graph 3
         cm = confusion_matrix(y, predictions)
         plt.figure(figsize=(5,4))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                    xticklabels=['No Churn','Churn'], 
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['No Churn','Churn'],
                     yticklabels=['No Churn','Churn'])
-        plt.xlabel("Predicted")
-        plt.ylabel("Actual")
-        plt.title(f"Confusion Matrix (Accuracy: {score}%)")
         session['graph3_file'] = save_graph(plt.gcf(), f"{session['user']}_graph3.png")
 
-        # HTML Table for Result Page
+        # ---------------- RESULT ----------------
         table_html = df.head(100).to_html(index=False)
-        session['tables'] = [table_html]
-
-        download_link = url_for('download', filename=unique_csv)
 
         return render_template(
             'result.html',
@@ -240,15 +235,14 @@ def upload():
             connected=connected,
             score=score,
             tables=[table_html],
-            summary_only=False,
-            download_link=download_link,
-
-            graph1=url_for('static', filename='downloads/' + os.path.basename(session['graph1_file'])),
-            graph2=url_for('static', filename='downloads/' + os.path.basename(session['graph2_file'])),
-            graph3=url_for('static', filename='downloads/' + os.path.basename(session['graph3_file']))
-)
+            download_link=url_for('download', filename=unique_csv),
+            graph1=url_for('download', filename=os.path.basename(session['graph1_file'])),
+            graph2=url_for('download', filename=os.path.basename(session['graph2_file'])),
+            graph3=url_for('download', filename=os.path.basename(session['graph3_file']))
+        )
 
     except Exception as e:
+        print(traceback.format_exc())
         return f"❌ Error: {str(e)}"
 
 # ================= DOWNLOAD AI REPORT =================
@@ -289,8 +283,12 @@ def download_ai():
 
     # Add prediction table
     csv_file = session.get('prediction_file')
-    if csv_file and os.path.exists(csv_file):
-        df_table = pd.read_csv(csv_file).head(100)
+
+    if csv_file:
+        csv_path = os.path.join(DOWNLOAD_FOLDER, csv_file)
+
+        if os.path.exists(csv_path):
+            df_table = pd.read_csv(csv_path).head(100)
         doc.add_heading('Prediction Table (Top 100 Rows)', level=1)
         table = doc.add_table(rows=1, cols=len(df_table.columns))
         table.style = 'Medium Shading 1 Accent 1'
@@ -417,7 +415,7 @@ def reset_password(user_id):
             return redirect(url_for('login'))
     return render_template('reset_password.html', user=user, message=message)
 
-   # ================== DOWNLOAD SUMMARY ONLY ==================
+# ================== DOWNLOAD SUMMARY ONLY ==================
 @app.route('/download-summary')
 def download_summary():
     if 'user' not in session:

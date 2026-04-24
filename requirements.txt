@@ -1,7 +1,6 @@
-Flask
-Flask-SQLAlchemy
+flask
+flask_sqlalchemy
 pandas
-numpy
 matplotlib
 seaborn
 scikit-learn
