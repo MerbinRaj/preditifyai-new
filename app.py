@@ -152,8 +152,9 @@ def upload():
         df = pd.read_csv(file)
 
         # 🔥 LIMIT DATA SIZE (IMPORTANT FOR RENDER)
-        if len(df) > 3000:
-            return "❌ Dataset too large (max 3000 rows allowed)"
+        # 🔥 Auto optimize dataset size
+        if len(df) > 5000:
+            df = df.sample(5000, random_state=42)
 
         # ---------------- PREPROCESS ----------------
         if 'customerID' in df.columns:
@@ -201,7 +202,7 @@ def upload():
         # ---------------- SAVE CSV ----------------
         unique_csv = f"{session['user']}_prediction_{uuid.uuid4().hex}.csv"
         csv_path = os.path.join(DOWNLOAD_FOLDER, unique_csv)
-        df.head(2000).to_csv(csv_path, index=False)
+        df.to_csv(csv_path, index=False)
         session['prediction_file'] = unique_csv
 
         # ---------------- GRAPHS FUNCTION ----------------
